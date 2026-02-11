@@ -22,29 +22,28 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v4          # ← actualizado a v4 (más estable y recomendado)
+      with:
+        version: 8                       # o 9, 10... o déjalo vacío si usas "packageManager" en package.json
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm'
-
-    - name: Install pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
+        cache: 'pnpm'                    # ahora sí funciona porque pnpm ya está en el PATH
 
     - name: Install dependencies
       run: pnpm install
-      
+
     - name: Build project
       run: pnpm run build
       env:
         NEXT_PUBLIC_BASE_PATH: /Konnekt
         NODE_ENV: production
 
-    - name: List build output
+    - name: List build output                  # opcional – para debug
       run: |
         echo "Build completed successfully"
         ls -la out/ | head -10
