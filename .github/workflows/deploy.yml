@@ -40,7 +40,7 @@ jobs:
     - name: Build project
       run: pnpm run build
       env:
-        NEXT_PUBLIC_BASE_PATH: /Konnekt
+        NEXT_PUBLIC_BASE_PATH: /portfolio
         NODE_ENV: production
 
     - name: List build output                  # opcional – para debug
