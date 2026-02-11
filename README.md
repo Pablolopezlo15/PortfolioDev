@@ -1,6 +1,6 @@
 # 🚀 Pablo López Lozano - Portfolio
 
-Portfolio personal de **Pablo López Lozano**, Desarrollador Full-Stack Junior. Sitio responsivo y moderno construido con **React 19** y **TypeScript**, desplegado en **GitHub Pages**.
+Portfolio personal de **Pablo López Lozano**, Desarrollador Full-Stack Junior. Sitio responsivo y moderno construido con **Next.js 16** **React 19** y **TypeScript**, desplegado en **GitHub Pages**.
 
 ## 📋 Tabla de Contenidos
 
