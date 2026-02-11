@@ -37,6 +37,9 @@ jobs:
     - name: Install dependencies
       run: pnpm install
 
+    - name: Verify Tailwind installation
+      run: pnpm list tailwindcss postcss autoprefixer
+      
     - name: Build project
       run: pnpm run build
       env:
@@ -46,6 +49,8 @@ jobs:
     - name: List build output                  # opcional – para debug
       run: |
         echo "Build completed successfully"
+        echo "Checking CSS files..."
+        find out/ -name "*.css" -type f | head -10
         ls -la out/ | head -10
         echo "Images found:"
         ls -la out/*.jpg out/*.png 2>/dev/null | head -5 || echo "No images found"
