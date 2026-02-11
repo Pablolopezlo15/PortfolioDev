@@ -3,11 +3,10 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -16,62 +15,60 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-
-    - name: Install pnpm
-      uses: pnpm/action-setup@v4          # ← actualizado a v4 (más estable y recomendado)
       with:
-        version: 8                       # o 9, 10... o déjalo vacío si usas "packageManager" en package.json
+        fetch-depth: 0
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 8
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm'                    # ahora sí funciona porque pnpm ya está en el PATH
+        cache: 'pnpm'
 
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
 
-    - name: Verify Tailwind installation
-      run: pnpm list tailwindcss postcss autoprefixer
-      
-    - name: Build project
-      run: |
-        echo "Building with GITHUB_PAGES=true"
-        GITHUB_PAGES=true NODE_ENV=production pnpm run build
+    - name: Build Next.js
+      run: pnpm run build
       env:
         GITHUB_PAGES: 'true'
         NODE_ENV: production
 
     - name: Create .nojekyll file
-      run: touch out/.nojekyll
-      
-    - name: List build output                  # opcional – para debug
       run: |
-        echo "Build completed successfully"
-        echo "Checking CSS files..."
-        find out/ -name "*.css" -type f | head -10
-        echo "Total files in out/:"
-        find out/ -type f | wc -l
-        echo "_next directory:"
-        ls -la out/_next/ 2>/dev/null || echo "_next not found"
-        ls -la out/_next/static/chunks/ 2>/dev/null | head -10 || echo "chunks not found"
+        touch out/.nojekyll
+        echo "✓ Created .nojekyll file"
 
-    - name: Setup Pages
-      uses: actions/configure-pages@v4
-      with:
-        static_site_generator: next
-      
-    - name: Upload artifact
-      uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./out
-        
+    - name: Verify build output
+      run: |
+        echo "=== Build Verification ==="
+        echo "Total files: $(find out/ -type f | wc -l)"
+        echo ""
+        echo "=== CSS Files ==="
+        find out/ -name "*.css" -type f | head -5
+        echo ""
+        echo "=== _next directory ==="
+        ls -lah out/_next/ 2>/dev/null || echo "ERROR: _next directory not found!"
+        echo ""
+        echo "=== .nojekyll file ==="
+        ls -la out/.nojekyll
+        echo ""
+        echo "✓ Build verification complete"
+
     - name: Deploy to GitHub Pages
-      id: deployment
-      uses: actions/deploy-pages@v4
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./out
+        cname: pablolopezlo15.github.io
+        force_orphan: true
