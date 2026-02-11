@@ -1,11 +1,12 @@
-name: Deploy
+name: Deploy Next.js site to Pages
+
 on:
   push:
-    branches: [ main ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -16,58 +17,44 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+    env:
+      GITHUB_PAGES: "true"
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
-      with:
-        version: 8
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'pnpm'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
 
-    - name: Install dependencies
-      run: pnpm install
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
 
-    - name: Build Next.js
-      run: pnpm run build
-      env:
-        GITHUB_PAGES: 'true'
-        NODE_ENV: production
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Create .nojekyll file
-      run: |
-        touch out/.nojekyll
-        echo "✓ Created .nojekyll file"
+      - name: Build static export
+        run: pnpm build
 
-    - name: Verify build output
-      run: |
-        echo "=== Build Verification ==="
-        echo "Total files: $(find out/ -type f | wc -l)"
-        echo ""
-        echo "=== CSS Files ==="
-        find out/ -name "*.css" -type f | head -5
-        echo ""
-        echo "=== _next directory ==="
-        ls -lah out/_next/ 2>/dev/null || echo "ERROR: _next directory not found!"
-        echo ""
-        echo "=== .nojekyll file ==="
-        ls -la out/.nojekyll
-        echo ""
-        echo "✓ Build verification complete"
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./out
-        cname: pablolopezlo15.github.io
-        force_orphan: true
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
