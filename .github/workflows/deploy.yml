@@ -41,9 +41,11 @@ jobs:
       run: pnpm list tailwindcss postcss autoprefixer
       
     - name: Build project
-      run: pnpm run build
+      run: |
+        echo "Building with GITHUB_PAGES=true"
+        GITHUB_PAGES=true NODE_ENV=production pnpm run build
       env:
-        NEXT_PUBLIC_BASE_PATH: /portfolio
+        GITHUB_PAGES: 'true'
         NODE_ENV: production
 
     - name: Create .nojekyll file
