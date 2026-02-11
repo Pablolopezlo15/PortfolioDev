@@ -24,18 +24,18 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Install pnpm
-      uses: pnpm/action-setup@v4          # ← actualizado a v4 (más estable y recomendado)
+      uses: pnpm/action-setup@v4
       with:
-        version: 8                       # o 9, 10... o déjalo vacío si usas "packageManager" en package.json
+        version: 8
 
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '20'
-        cache: 'pnpm'                    # ahora sí funciona porque pnpm ya está en el PATH
+        cache: 'pnpm'
 
     - name: Install dependencies
-      run: pnpm install
+      run: pnpm install --frozen-lockfile
 
     - name: Build project
       run: pnpm run build
@@ -43,21 +43,31 @@ jobs:
         NEXT_PUBLIC_BASE_PATH: /Konnekt
         NODE_ENV: production
 
-    - name: List build output                  # opcional – para debug
+    # ── Debug: muy importante para ver qué se generó ──
+    - name: Debug - List files after build
       run: |
-        echo "Build completed successfully"
-        ls -la out/ | head -10
-        echo "Images found:"
-        ls -la out/*.jpg out/*.png 2>/dev/null | head -5 || echo "No images found"
+        echo "Current directory contents:"
+        ls -la
+        echo ""
+        echo ".next/ contents (if exists):"
+        ls -la .next 2>/dev/null || echo "No .next folder"
+        echo ""
+        echo "out/ contents (should exist after output: 'export'):"
+        ls -la out 2>/dev/null || echo "No out folder → check next.config.js output: 'export'"
+        echo ""
+        if [ -d "out" ]; then
+          echo "out/ exists → counting files:"
+          find out -type f | wc -l
+        fi
 
     - name: Setup Pages
       uses: actions/configure-pages@v4
-      
+
     - name: Upload artifact
       uses: actions/upload-pages-artifact@v3
       with:
         path: ./out
-        
+
     - name: Deploy to GitHub Pages
       id: deployment
       uses: actions/deploy-pages@v4
